@@ -1,7 +1,14 @@
-import { DynamoDB, GetItemCommand, } from "@aws-sdk/client-dynamodb";
+import { DynamoDB, DynamoDBClient, GetItemCommand, } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { DocumentClient } from 'aws-sdk/clients/dynamodb';
 
 const endpoint = 'http://localhost:8000';
+
+const bbClient = new DynamoDBClient({
+  endpoint
+});
+
+const bbDocClient = DynamoDBDocumentClient.from(bbClient);
 
 const client = new DynamoDB({
   endpoint
@@ -53,7 +60,25 @@ async function getItems2() {
   console.log(output);
 }
 
-// getItems2();
+getItems2();
+
+async function getItems3() {
+  console.log(
+    await bbDocClient.send(
+      new GetCommand({
+        TableName: 'ProductCatalog',
+        Key: {
+          Id: 101
+        },
+        ConsistentRead: true,
+        ProjectionExpression: "ProductCategory, Price, Title",
+        ReturnConsumedCapacity: "TOTAL"
+      })
+    )
+  )
+}
+
+// getItems3();
 
 async function queryReplies() {
   const output = await docClient.query({
@@ -315,7 +340,7 @@ async function createGSI() {
   console.log("GSI created");
 }
 
-createGSI();
+// createGSI();
 
 // describeTable('Reply');
 
